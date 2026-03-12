@@ -21,8 +21,8 @@ from typing import (
     Union,
 )
 
-from hikari.api.event_manager import EventT
 from hikari.commands import CommandOption, OptionType
+from hikari.events.base_events import EventT
 from hikari.events.interaction_events import InteractionCreateEvent
 from hikari.snowflakes import Snowflakeish
 from hikari.undefined import UndefinedOr
@@ -89,8 +89,7 @@ class IGroupCommandCallback(ICommandCallback, Protocol):
     @staticmethod
     def command(
         name: str, description: str
-    ) -> Callable[[CallableProto], SubCommandCallback]:
-        ...
+    ) -> Callable[[CallableProto], SubCommandCallback]: ...
 
 
 class CommandCallback(IGroupCommandCallback, Protocol):
@@ -99,12 +98,10 @@ class CommandCallback(IGroupCommandCallback, Protocol):
     @staticmethod
     def group(
         name: str, description: str
-    ) -> Callable[[CallableProto], SubCommandGroupCallback]:
-        ...
+    ) -> Callable[[CallableProto], SubCommandGroupCallback]: ...
 
 
-class SubCommandCallback(ICommandCallback, Protocol):
-    ...
+class SubCommandCallback(ICommandCallback, Protocol): ...
 
 
 class SubCommandGroupCallback(IGroupCommandCallback, Protocol):
@@ -127,8 +124,7 @@ class Extension(Protocol):
 
 
 class IExtensionCallback(Protocol):
-    def __call__(self, handler: GatewayCommandHandler) -> Any:
-        ...
+    def __call__(self, handler: GatewayCommandHandler) -> Any: ...
 
 
 class ExtensionInitializer(Protocol):
@@ -147,13 +143,11 @@ class _IEventCallback(SignatureAware, Protocol[EventT]):
 
 
 class _EventCallback(_IEventCallback[EventT], Protocol):
-    async def call(self, event: EventT) -> None:
-        ...
+    async def call(self, event: EventT) -> None: ...
 
 
 class _EventCallbackWithData(_IEventCallback[EventT], Protocol):
-    async def call(self, event: EventT, *args: Any, **kwargs: Any) -> None:
-        ...
+    async def call(self, event: EventT, *args: Any, **kwargs: Any) -> None: ...
 
 
 EventCallback = Union[_EventCallback[EventT], _EventCallbackWithData[EventT]]
@@ -161,15 +155,13 @@ BucketHash = Union[Snowflakeish, Tuple[Snowflakeish, ...]]
 
 
 class _SyncHashGetter(CallableT[BucketHash], Protocol):
-    def __call__(self, event: InteractionCreateEvent) -> BucketHash:
-        ...
+    def __call__(self, event: InteractionCreateEvent) -> BucketHash: ...
 
 
 class _SyncHashGetterWithData(CallableT[BucketHash], Protocol):
     def __call__(
         self, event: InteractionCreateEvent, *args: Any, **kwargs: Any
-    ) -> BucketHash:
-        ...
+    ) -> BucketHash: ...
 
 
 class _AsyncHashGetter(CallableT[BucketHash], Protocol):
@@ -180,18 +172,15 @@ class _AsyncHashGetter(CallableT[BucketHash], Protocol):
 class _AsyncHashGetterWithData(CallableT[BucketHash], Protocol):
     async def __call__(  # type: ignore
         self, event: InteractionCreateEvent, *args: Any, **kwargs: Any
-    ) -> BucketHash:
-        ...
+    ) -> BucketHash: ...
 
 
 class _SyncLimitGetter(CallableT[int], Protocol):
-    def __call__(self, hash: BucketHash) -> int:
-        ...
+    def __call__(self, hash: BucketHash) -> int: ...
 
 
 class _SyncLimitGetterWithData(CallableT[int], Protocol):
-    def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> int:
-        ...
+    def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> int: ...
 
 
 class _AsyncLimitGetter(CallableT[int], Protocol):
@@ -205,13 +194,11 @@ class _AsyncLimitGetterWithData(CallableT[int], Protocol):
 
 
 class _SyncPeriodGetter(CallableT[float], Protocol):
-    def __call__(self, hash: BucketHash) -> float:
-        ...
+    def __call__(self, hash: BucketHash) -> float: ...
 
 
 class _SyncPeriodGetterWithData(CallableT[float], Protocol):
-    def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> float:
-        ...
+    def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> float: ...
 
 
 class _AsyncPeriodGetter(CallableT[float], Protocol):

@@ -4,7 +4,7 @@ import inspect
 from typing import TYPE_CHECKING, Any, Coroutine, Optional, TypeVar
 
 from hikari.events.interaction_events import InteractionCreateEvent
-from hikari.impl.bot import GatewayBot
+from hikari.impl.gateway_bot import GatewayBot
 from hikari.interactions.command_interactions import CommandInteraction
 from hikari.messages import Message
 

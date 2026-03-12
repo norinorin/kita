@@ -21,7 +21,7 @@ from weakref import WeakValueDictionary
 from hikari.api.special_endpoints import CommandBuilder
 from hikari.events.interaction_events import InteractionCreateEvent
 from hikari.events.lifetime_events import StartedEvent
-from hikari.impl.bot import GatewayBot
+from hikari.impl.gateway_bot import GatewayBot
 from hikari.interactions.base_interactions import InteractionType
 from hikari.interactions.command_interactions import CommandInteraction
 from hikari.snowflakes import Snowflakeish
@@ -93,9 +93,9 @@ class GatewayCommandHandler(DataContainerMixin):
         self._extensions: Dict[str, Extension] = {}
         self.guild_ids = guild_ids or set()
         self.owner_ids = owner_ids or set()
-        self._listeners: MutableMapping[
-            EventCallback, CallbackT
-        ] = WeakValueDictionary()
+        self._listeners: MutableMapping[EventCallback, CallbackT] = (
+            WeakValueDictionary()
+        )
         self.context_type = context_type
         app.subscribe(StartedEvent, self._on_started)
         app.subscribe(InteractionCreateEvent, self._process_command_interaction)
@@ -249,7 +249,6 @@ class GatewayCommandHandler(DataContainerMixin):
         return cb, {o.name: o.value for o in options or []}
 
     async def _process_command_interaction(self, event: InteractionCreateEvent) -> None:
-
         if (
             interaction := event.interaction
         ).type is not InteractionType.APPLICATION_COMMAND:
@@ -285,7 +284,7 @@ class GatewayCommandHandler(DataContainerMixin):
                 )
                 return
 
-        await self.app.dispatch(CommandCallEvent(self.app, ctx))
+        self.app.dispatch(CommandCallEvent(self.app, ctx))
 
         extra_env: MutableMapping[Type[Any], Any] = {
             InteractionCreateEvent: event,
@@ -310,18 +309,18 @@ class GatewayCommandHandler(DataContainerMixin):
             )
             await ctx._consume_gen(gen)
         except Exception as e:
-            await self._dispatch_command_failure(
+            self._dispatch_command_failure(
                 ctx, e if isinstance(e, KitaError) else CommandRuntimeError(e, cb)
             )
         else:
-            await self.app.dispatch(CommandSuccessEvent(self.app, ctx))
+            self.app.dispatch(CommandSuccessEvent(self.app, ctx))
 
-    async def _dispatch_command_failure(
+    def _dispatch_command_failure(
         self,
         ctx: Context,
         exc: KitaError,
     ) -> None:
-        await self.app.dispatch(CommandFailureEvent(self.app, ctx, exc))
+        self.app.dispatch(CommandFailureEvent(self.app, ctx, exc))
 
 
 class RestCommandHandler:

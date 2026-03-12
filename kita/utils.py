@@ -4,7 +4,7 @@ from types import TracebackType
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, TypeVar, cast
 
 from hikari.commands import CommandOption, OptionType
-from hikari.impl.special_endpoints import CommandBuilder
+from hikari.impl.special_endpoints import SlashCommandBuilder
 from typing_extensions import TypeGuard
 
 from kita.typedefs import (
@@ -47,9 +47,9 @@ def get_options(callback: ICommandCallback) -> List[CommandOption]:
     ]
 
 
-def get_command_builder(callback: ICommandCallback) -> CommandBuilder:
-    command = CommandBuilder(
-        callback.__name__, callback.__description__, get_options(callback)
+def get_command_builder(callback: ICommandCallback) -> SlashCommandBuilder:
+    command = SlashCommandBuilder(
+        callback.__name__, callback.__description__, options=get_options(callback)
     )
     return command
 

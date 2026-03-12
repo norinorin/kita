@@ -27,7 +27,8 @@ from kita.typedefs import (
 from kita.utils import ensure_signature, is_command_parent, is_listener
 
 if TYPE_CHECKING:
-    from hikari.api.event_manager import CallbackT, EventT_co
+    from hikari.api.event_manager import CallbackT
+    from hikari.events.base_events import EventT
 
     from kita.command_handlers import GatewayCommandHandler
 
@@ -111,10 +112,10 @@ def finalizer(func: IExtensionCallback) -> ExtensionFinalizer:
 
 
 def listener(
-    event: Optional[Type[EventT_co]] = None,
-) -> Callable[[CallbackT[EventT_co]], EventCallback[EventT_co]]:
-    def decorator(func: CallbackT[EventT_co]) -> EventCallback[EventT_co]:
-        cast_func = cast("EventCallback[EventT_co]", func)
+    event: Optional[Type[EventT]] = None,
+) -> Callable[[CallbackT[EventT]], EventCallback[EventT]]:
+    def decorator(func: CallbackT[EventT]) -> EventCallback[EventT]:
+        cast_func = cast("EventCallback[EventT]", func)
         nonlocal event
         ensure_signature(cast_func)
         if event is None:
@@ -128,7 +129,7 @@ def listener(
             annotation = param.annotation
             if not (isinstance(annotation, type) and issubclass(annotation, Event)):
                 annotation = get_type_hints(func)[param.name]
-            event = cast("Type[EventT_co]", annotation)
+            event = cast("Type[EventT]", annotation)
 
         cast_func.__etype__ = event
         cast_func.__is_listener__ = True
