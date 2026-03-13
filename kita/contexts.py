@@ -50,8 +50,10 @@ class Context:
         assert isinstance(self.event.interaction, CommandInteraction)
         return self.event.interaction
 
-    def defer(self) -> Coroutine[Any, Any, Optional[Message]]:
-        return defer().execute(self)
+    def defer(
+        self, *args: Any, **kwargs: Any
+    ) -> Coroutine[Any, Any, Optional[Message]]:
+        return defer(*args, **kwargs).execute(self)
 
     def respond(
         self, *args: Any, **kwargs: Any

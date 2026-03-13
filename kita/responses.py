@@ -19,8 +19,8 @@ def respond(*args: Any, **kwargs: Any) -> Response:
     return Response(CREATE, *args, **kwargs)
 
 
-def defer() -> Response:
-    return Response(DEFER)
+def defer(*args: Any, **kwargs: Any) -> Response:
+    return Response(DEFER, *args, **kwargs)
 
 
 def edit(*args: Any, **kwargs: Any) -> Response:
@@ -61,7 +61,7 @@ class Response:
                 return None
 
             await interaction.create_initial_response(
-                ResponseType.DEFERRED_MESSAGE_CREATE
+                ResponseType.DEFERRED_MESSAGE_CREATE, *args, **kwargs
             )
             ctx.deferring = True
             ctx.n_message += 1
