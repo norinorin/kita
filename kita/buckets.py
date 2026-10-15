@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any
 
 from hikari.events.interaction_events import InteractionCreateEvent
 
@@ -25,7 +25,7 @@ class EmptyBucketError(Exception):
 
 
 class Bucket:
-    __slots__ = ("manager", "tokens", "reset_at", "hash", "limit", "period")
+    __slots__ = ("hash", "limit", "manager", "period", "reset_at", "tokens")
 
     def __init__(self, manager: BucketManager, hash_: BucketHash) -> None:
         self.manager: BucketManager = manager
@@ -36,7 +36,7 @@ class Bucket:
         self.period: float
 
     def set_constraints(
-        self, limit: Optional[int] = None, period: Optional[float] = None
+        self, limit: int | None = None, period: float | None = None
     ) -> None:
         if limit is not None:
             self.limit = limit
@@ -54,7 +54,6 @@ class Bucket:
             )
 
         self.consume_token()
-        return None
 
     @property
     def is_exhausted(self) -> bool:
@@ -85,21 +84,21 @@ class Bucket:
 
 
 class BucketManager:
-    __slots__ = ("name", "buckets", "hash_getter", "period", "limit", "gc_task")
+    __slots__ = ("buckets", "gc_task", "hash_getter", "limit", "name", "period")
 
     def __init__(
         self,
         name: str,
         hash_getter: HashGetter,
-        limit: Union[LimitGetter, int],
-        period: Union[PeriodGetter, float],
+        limit: LimitGetter | int,
+        period: PeriodGetter | float,
     ):
         self.name = name
-        self.buckets: Dict[BucketHash, Bucket] = {}
+        self.buckets: dict[BucketHash, Bucket] = {}
         self.hash_getter = hash_getter
         self.limit = limit
         self.period = period
-        self.gc_task: Optional[asyncio.Task[None]] = None
+        self.gc_task: asyncio.Task[None] | None = None
 
     async def get_limit(self, handler: GatewayCommandHandler, hash_: BucketHash) -> int:
         return (

@@ -1,4 +1,5 @@
-from typing import Any, Callable, Literal, MutableMapping, Type, cast
+from collections.abc import Callable, MutableMapping
+from typing import Any, Literal, cast
 
 from hikari.events.interaction_events import InteractionCreateEvent
 from hikari.interactions.command_interactions import CommandInteraction
@@ -19,13 +20,13 @@ from kita.typedefs import CallableProto, ICommandCallback
 from kita.utils import ensure_checks
 
 __all__ = (
-    "with_check",
-    "with_check_any",
-    "guild_only",
     "dm_only",
-    "owner_only",
+    "guild_only",
     "has_all_permissions",
     "has_any_permissions",
+    "owner_only",
+    "with_check",
+    "with_check_any",
 )
 
 
@@ -48,7 +49,7 @@ def with_check_any(
         ctx: Context = data(Context),
     ) -> Literal[True]:
         exceptions = []
-        extra_env: MutableMapping[Type[Any], Any] = {
+        extra_env: MutableMapping[type[Any], Any] = {
             InteractionCreateEvent: ctx.event,
             CommandInteraction: ctx.interaction,
             type(ctx): ctx,
@@ -57,7 +58,7 @@ def with_check_any(
             try:
                 if await ctx.handler._invoke_callback(predicate, extra_env=extra_env):
                     return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 exceptions.append(exc)
 
         raise CheckAnyError(predicates, exceptions)

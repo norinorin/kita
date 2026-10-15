@@ -1,5 +1,6 @@
+from collections.abc import Callable, MutableMapping
 from functools import partial
-from typing import Callable, MutableMapping, Set, TypeVar, Union, cast
+from typing import TypeVar, cast
 
 from hikari.commands import OptionType
 from hikari.snowflakes import Snowflakeish
@@ -27,7 +28,7 @@ _CallbackT = TypeVar("_CallbackT", bound=ICommandCallback)
 def command(
     name: str,
     description: str,
-    guild_ids: UndefinedOr[Set[Snowflakeish]] = UNDEFINED,
+    guild_ids: UndefinedOr[set[Snowflakeish]] = UNDEFINED,
 ) -> Callable[[CallableProto], CommandCallback]:
     def decorator(func: CallableProto) -> CommandCallback:
         cast_func = cast(CommandCallback, func)
@@ -58,7 +59,7 @@ def _set_metadata(
 
 def _init_callback(func: CommandCallback) -> None:
     __sub_commands__: MutableMapping[
-        str, Union[SubCommandCallback, SubCommandGroupCallback]
+        str, SubCommandCallback | SubCommandGroupCallback
     ] = {}
 
     def command_(

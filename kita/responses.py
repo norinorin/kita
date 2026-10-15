@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 from hikari.interactions.base_interactions import ResponseType
 from hikari.messages import Message
@@ -9,7 +9,7 @@ from hikari.messages import Message
 if TYPE_CHECKING:
     from kita.contexts import Context
 
-__all__ = "Response", "respond", "edit", "defer"
+__all__ = "Response", "defer", "edit", "respond"
 CREATE = sys.intern("create")
 EDIT = sys.intern("edit")
 DEFER = sys.intern("defer")
@@ -27,7 +27,7 @@ def edit(*args: Any, **kwargs: Any) -> Response:
     return Response(EDIT, *args, **kwargs)
 
 
-def _ensure_args(args: Tuple[Any, ...]) -> Tuple[Any, ...]:
+def _ensure_args(args: tuple[Any, ...]) -> tuple[Any, ...]:
     if not (args and isinstance(args[0], ResponseType)):
         args = (ResponseType.MESSAGE_CREATE, *args)
 
@@ -35,7 +35,7 @@ def _ensure_args(args: Tuple[Any, ...]) -> Tuple[Any, ...]:
 
 
 class Response:
-    __slots__ = ("type", "_args", "_kwargs")
+    __slots__ = ("_args", "_kwargs", "type")
 
     def __init__(self, type_: str, *args: Any, **kwargs: Any):
         self.type = type_
@@ -43,18 +43,18 @@ class Response:
         self._kwargs = kwargs
 
     @property
-    def args(self) -> Tuple[Any, ...]:
+    def args(self) -> tuple[Any, ...]:
         return self._args
 
     @property
-    def kwargs(self) -> Dict[str, Any]:
+    def kwargs(self) -> dict[str, Any]:
         return self._kwargs
 
-    async def execute(self, ctx: Context) -> Optional[Message]:
+    async def execute(self, ctx: Context) -> Message | None:
         args = self.args
         kwargs = self.kwargs
         interaction = ctx.interaction
-        res: Optional[Message] = None
+        res: Message | None = None
         if self.type == DEFER:
             if ctx.n_message:
                 # we've responded, won't be able to defer
@@ -78,9 +78,16 @@ class Response:
                 return await self.execute(ctx)
 
             if not ctx.n_message:  # initial
-                res = await interaction.create_initial_response(
-                    *_ensure_args(args), **kwargs
-                )
+                res = (
+                    (
+                        r := (
+                            await interaction.create_initial_response(
+                                *_ensure_args(args), **kwargs
+                            )
+                        ).resource
+                    )
+                    and r.message
+                ) or None
             else:  # follow up
                 res = await interaction.execute(*args, **kwargs)
 

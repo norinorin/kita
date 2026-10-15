@@ -1,26 +1,27 @@
 from abc import ABC, abstractmethod
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from hikari.permissions import Permissions
 
 from kita.typedefs import CallableProto, Extension, ICommandCallback
 
 __all__ = (
-    "KitaError",
-    "MissingCommandCallbackError",
-    "CommandRuntimeError",
-    "CommandNameConflictError",
-    "ExtensionError",
-    "ExtensionInitializationError",
-    "ExtensionFinalizationError",
-    "CheckError",
     "CheckAnyError",
-    "MissingPermissionsError",
-    "MissingAnyPermissionsError",
-    "GuildOnlyError",
-    "DMOnlyError",
-    "OwnerOnlyError",
+    "CheckError",
+    "CommandNameConflictError",
     "CommandOnCooldownError",
+    "CommandRuntimeError",
+    "DMOnlyError",
+    "ExtensionError",
+    "ExtensionFinalizationError",
+    "ExtensionInitializationError",
+    "GuildOnlyError",
+    "KitaError",
+    "MissingAnyPermissionsError",
+    "MissingCommandCallbackError",
+    "MissingPermissionsError",
+    "OwnerOnlyError",
 )
 
 

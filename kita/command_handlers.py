@@ -2,18 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable, MutableMapping
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    List,
-    MutableMapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
     cast,
 )
 from weakref import WeakValueDictionary
@@ -62,7 +54,8 @@ from kita.typedefs import (
 from kita.utils import get_command_builder
 
 if TYPE_CHECKING:
-    from hikari.api.event_manager import CallbackT, EventT, EventT_co
+    from hikari.api.event_manager import CallbackT
+    from hikari.events.base_events import EventT
 
 __all__ = ("GatewayCommandHandler",)
 _LOGGER = logging.getLogger("kita.command_handler")
@@ -70,27 +63,27 @@ _LOGGER = logging.getLogger("kita.command_handler")
 
 class GatewayCommandHandler(DataContainerMixin):
     __slots__ = (
-        "app",
-        "guild_ids",
-        "owner_ids",
-        "context_type",
         "_commands",
         "_extensions",
         "_listeners",
+        "app",
+        "context_type",
+        "guild_ids",
+        "owner_ids",
     )
 
     def __init__(
         self,
         app: GatewayBot,
-        guild_ids: Optional[Set[Snowflakeish]] = None,
-        owner_ids: Optional[Set[Snowflakeish]] = None,
-        context_type: Type[Context] = Context,
+        guild_ids: set[Snowflakeish] | None = None,
+        owner_ids: set[Snowflakeish] | None = None,
+        context_type: type[Context] = Context,
     ) -> None:
         super().__init__()
         self.app = app
         self.set_data(app)
         self._commands: CommandContainer = {}
-        self._extensions: Dict[str, Extension] = {}
+        self._extensions: dict[str, Extension] = {}
         self.guild_ids = guild_ids or set()
         self.owner_ids = owner_ids or set()
         self._listeners: MutableMapping[EventCallback, CallbackT] = (
@@ -108,22 +101,22 @@ class GatewayCommandHandler(DataContainerMixin):
         return callback
 
     def listen(
-        self, event_type: Optional[Type[EventT_co]] = None
-    ) -> Callable[[CallbackT[EventT_co]], CallbackT[EventT_co]]:
-        def decorator(func: CallbackT[EventT_co]) -> CallbackT[EventT_co]:
-            return self.app.listen(event_type)(
-                self._wrap_event_callback(listener(event_type)(func))
+        self, *event_types: type[EventT]
+    ) -> Callable[[CallbackT[EventT]], CallbackT[EventT]]:
+        def decorator(func: CallbackT[EventT]) -> CallbackT[EventT]:
+            return self.app.listen(*event_types)(
+                self._wrap_event_callback(listener(*event_types)(func))
             )
 
         return decorator
 
     def subscribe(
         self,
-        callback: EventCallback[EventT_co],
+        callback: EventCallback[EventT],
     ) -> None:
         self.app.subscribe(callback.__etype__, self._wrap_event_callback(callback))
 
-    def unsubscribe(self, callback: EventCallback[EventT_co]) -> None:
+    def unsubscribe(self, callback: EventCallback[EventT]) -> None:
         self.app.unsubscribe(callback.__etype__, self._listeners.pop(callback))
 
     @property
@@ -134,7 +127,7 @@ class GatewayCommandHandler(DataContainerMixin):
         self,
         name: str,
         description: str,
-        guild_ids: UndefinedOr[Set[Snowflakeish]] = UNDEFINED,
+        guild_ids: UndefinedOr[set[Snowflakeish]] = UNDEFINED,
     ) -> Callable[[CallableProto], CommandCallback]:
         def decorator(func: CallableProto) -> CommandCallback:
             self.add_command(func := command(name, description, guild_ids)(func))
@@ -150,14 +143,14 @@ class GatewayCommandHandler(DataContainerMixin):
 
         self._commands[func.__name__] = func
 
-    def remove_command(self, func_or_name: Union[CommandCallback, str]) -> None:
+    def remove_command(self, func_or_name: CommandCallback | str) -> None:
         if not isinstance(func_or_name, str):
             func_or_name = func_or_name.__name__
 
         del self._commands[func_or_name]
 
-    def get_command(self, name: str) -> Optional[ICommandCallback]:
-        ret: Optional[ICommandCallback]
+    def get_command(self, name: str) -> ICommandCallback | None:
+        ret: ICommandCallback | None
         names = name.split()
         if not (ret := self.commands.get(names.pop(0))):
             return None
@@ -218,8 +211,8 @@ class GatewayCommandHandler(DataContainerMixin):
         await self._sync()
 
     async def _sync(self) -> None:
-        commands: List[CommandBuilder] = []
-        guild_commands: MutableMapping[Snowflakeish, List[CommandBuilder]] = {}
+        commands: list[CommandBuilder] = []
+        guild_commands: MutableMapping[Snowflakeish, list[CommandBuilder]] = {}
         for callback in self._commands.values():
             builder = get_command_builder(callback)
             if guild_ids := callback.__guild_ids__ | self.guild_ids:
@@ -238,7 +231,7 @@ class GatewayCommandHandler(DataContainerMixin):
 
     def _resolve_cb(
         self, interaction: CommandInteraction
-    ) -> Tuple[ICommandCallback, Dict[str, Any]]:
+    ) -> tuple[ICommandCallback, dict[str, Any]]:
         options = interaction.options
         cb: ICommandCallback = self._commands[interaction.command_name]
 
@@ -261,7 +254,7 @@ class GatewayCommandHandler(DataContainerMixin):
         try:
             cb, options = self._resolve_cb(interaction)
         except KeyError:
-            await self._dispatch_command_failure(
+            self._dispatch_command_failure(
                 ctx,
                 MissingCommandCallbackError(
                     f"couldn't find any implementation for {interaction.command_name!r}"
@@ -275,7 +268,7 @@ class GatewayCommandHandler(DataContainerMixin):
             try:
                 (await bucket_manager.get_or_create_bucket(self, event)).acquire()
             except EmptyBucketError as exc:
-                await self._dispatch_command_failure(
+                self._dispatch_command_failure(
                     ctx,
                     CommandOnCooldownError(
                         f"you're in cooldown, please try again in {exc.retry_after} seconds.",
@@ -286,7 +279,7 @@ class GatewayCommandHandler(DataContainerMixin):
 
         self.app.dispatch(CommandCallEvent(self.app, ctx))
 
-        extra_env: MutableMapping[Type[Any], Any] = {
+        extra_env: MutableMapping[type[Any], Any] = {
             InteractionCreateEvent: event,
             CommandInteraction: event.interaction,
             self.context_type: ctx,

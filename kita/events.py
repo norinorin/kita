@@ -10,16 +10,20 @@ from kita.contexts import Context
 from kita.errors import KitaError
 
 __all__ = (
-    "KitaEvent",
     "CommandCallEvent",
     "CommandFailureEvent",
     "CommandSuccessEvent",
+    "KitaEvent",
 )
 
 
 @attrs(slots=True, weakref_slot=False)
 class KitaEvent(Event, ABC):
-    app: RESTAware = attrib()
+    _app: RESTAware = attrib(alias="app")
+
+    @property
+    def app(self) -> RESTAware:
+        return self._app
 
     @property
     @abstractmethod
@@ -28,18 +32,28 @@ class KitaEvent(Event, ABC):
 
 @attrs(slots=True, weakref_slot=False)
 class CommandCallEvent(KitaEvent):
-    app: RESTAware = attrib()
-    context: Context = attrib()
+    _context: Context = attrib(alias="context")
+
+    @property
+    def context(self) -> Context:
+        return self._context
 
 
 @attrs(slots=True, weakref_slot=False)
 class CommandFailureEvent(KitaEvent):
-    app: RESTAware = attrib()
-    context: Context = attrib()
+    _context: Context = attrib(alias="context")
+
+    @property
+    def context(self) -> Context:
+        return self._context
+
     exception: KitaError = attrib()
 
 
 @attrs(slots=True, weakref_slot=False)
 class CommandSuccessEvent(KitaEvent):
-    app: RESTAware = attrib()
-    context: Context = attrib()
+    _context: Context = attrib(alias="context")
+
+    @property
+    def context(self) -> Context:
+        return self._context

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from inspect import Signature
-from typing import Callable, Sequence, Union, cast
+from typing import cast
 
 from hikari.channels import ChannelType
 from hikari.commands import CommandChoice, CommandOption, OptionType
@@ -18,7 +19,7 @@ def with_option(
     name: str,
     description: str,
     choices: UndefinedOr[Sequence[CommandChoice]] = UNDEFINED,
-    channel_types: UndefinedOr[Sequence[Union[ChannelType, int]]] = UNDEFINED,
+    channel_types: UndefinedOr[Sequence[ChannelType | int]] = UNDEFINED,
 ) -> Callable[[CallableProto], ICommandCallback]:
     def decorator(func: CallableProto) -> ICommandCallback:
         cast_func = cast(ICommandCallback, func)

@@ -4,12 +4,9 @@ import importlib
 import inspect
 import logging
 import sys
+from collections.abc import Callable
 from typing import (
     TYPE_CHECKING,
-    Callable,
-    Optional,
-    Tuple,
-    Type,
     TypeVar,
     cast,
     get_type_hints,
@@ -32,7 +29,7 @@ if TYPE_CHECKING:
 
     from kita.command_handlers import GatewayCommandHandler
 
-__all__ = ("initializer", "finalizer", "listener")
+__all__ = ("finalizer", "initializer", "listener")
 T = TypeVar("T")
 _LOGGER = logging.getLogger("kita.extensions")
 
@@ -73,7 +70,7 @@ def unload_extension(name: str) -> Extension:
         return mod
 
 
-def reload_extension(name: str) -> Tuple[Extension, Extension]:
+def reload_extension(name: str) -> tuple[Extension, Extension]:
     old = unload_extension(name)
     try:
         new = load_extension(name)
@@ -84,7 +81,7 @@ def reload_extension(name: str) -> Tuple[Extension, Extension]:
         return old, new
 
 
-def _get_module(func: IExtensionCallback) -> Optional[Extension]:
+def _get_module(func: IExtensionCallback) -> Extension | None:
     if func.__module__ != __name__ and (mod := inspect.getmodule(func)):
         return cast(Extension, mod)
 
@@ -112,7 +109,7 @@ def finalizer(func: IExtensionCallback) -> ExtensionFinalizer:
 
 
 def listener(
-    event: Optional[Type[EventT]] = None,
+    event: type[EventT] | None = None,
 ) -> Callable[[CallbackT[EventT]], EventCallback[EventT]]:
     def decorator(func: CallbackT[EventT]) -> EventCallback[EventT]:
         cast_func = cast("EventCallback[EventT]", func)
@@ -129,7 +126,7 @@ def listener(
             annotation = param.annotation
             if not (isinstance(annotation, type) and issubclass(annotation, Event)):
                 annotation = get_type_hints(func)[param.name]
-            event = cast("Type[EventT]", annotation)
+            event = cast("type[EventT]", annotation)
 
         cast_func.__etype__ = event
         cast_func.__is_listener__ = True

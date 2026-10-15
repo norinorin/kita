@@ -37,7 +37,7 @@ def sub_group() -> None: ...
 async def sub_group_command(  # async function
     boolean: bool,  # required
     ctx: Context = data(Context),  # context could be injected
-    user: t.Optional[Snowflake] = None,  # not required
+    user: Snowflake | None = None,  # not required
 ) -> None:
     await ctx.respond(f"{user}, {boolean}")
 

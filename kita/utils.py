@@ -1,11 +1,11 @@
 import inspect
+from collections.abc import Callable, Iterable
 from operator import attrgetter
 from types import TracebackType
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, TypeGuard, TypeVar, cast
 
 from hikari.commands import CommandOption, OptionType
 from hikari.impl.special_endpoints import SlashCommandBuilder
-from typing_extensions import TypeGuard
 
 from kita.typedefs import (
     CallableProto,
@@ -17,19 +17,19 @@ from kita.typedefs import (
 )
 
 __all__ = (
-    "get_command_builder",
-    "ensure_signature",
-    "ensure_options",
     "ensure_bucket_manager",
+    "ensure_options",
+    "ensure_signature",
     "find",
     "get",
+    "get_command_builder",
     "get_exc_info",
     "maybe_await",
 )
 T = TypeVar("T")
 
 
-def get_options(callback: ICommandCallback) -> List[CommandOption]:
+def get_options(callback: ICommandCallback) -> list[CommandOption]:
     if not getattr(callback, "__sub_commands__", None):
         return callback.options
 
@@ -80,7 +80,7 @@ def ensure_bucket_manager(callback: Callable) -> ICommandCallback:
     return callback
 
 
-def find(predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
+def find(predicate: Callable[[T], bool], iterable: Iterable[T]) -> T | None:
     for item in iterable:
         if predicate(item):
             return item
@@ -88,7 +88,7 @@ def find(predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
     return None
 
 
-def get(iterable: Iterable[T], **attrs: Any) -> Optional[T]:
+def get(iterable: Iterable[T], **attrs: Any) -> T | None:
     _attrgetter = attrgetter
     _all = all
     getters = [(_attrgetter(attr), value) for attr, value in attrs.items()]
@@ -102,7 +102,7 @@ def get(iterable: Iterable[T], **attrs: Any) -> Optional[T]:
 
 def get_exc_info(
     exception: BaseException,
-) -> Tuple[Type[BaseException], BaseException, Optional[TracebackType]]:
+) -> tuple[type[BaseException], BaseException, TracebackType | None]:
     return type(exception), exception, exception.__traceback__
 
 

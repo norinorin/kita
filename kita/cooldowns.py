@@ -1,4 +1,5 @@
-from typing import Any, Callable, Union, cast, overload
+from collections.abc import Callable
+from typing import Any, cast, overload
 
 from hikari.events.interaction_events import InteractionCreateEvent
 from hikari.interactions.command_interactions import CommandInteraction
@@ -18,11 +19,11 @@ from kita.typedefs import (
 from kita.utils import ensure_bucket_manager, is_command
 
 __all__ = (
-    "with_cooldown",
-    "global_hash_getter",
-    "user_hash_getter",
-    "guild_hash_getter",
     "channel_hash_getter",
+    "global_hash_getter",
+    "guild_hash_getter",
+    "user_hash_getter",
+    "with_cooldown",
 )
 
 
@@ -77,13 +78,13 @@ def with_cooldown(
 def with_cooldown(
     arg: HashGetter,
     /,
-    limit: Union[LimitGetter, int],
-    period: Union[PeriodGetter, float],
+    limit: LimitGetter | int,
+    period: PeriodGetter | float,
 ) -> Callable[[CallableProto], ICommandCallback]: ...
 
 
 def with_cooldown(
-    arg: Union[ICommandCallback, HashGetter],
+    arg: ICommandCallback | HashGetter,
     /,
     limit: Any = None,
     period: Any = None,

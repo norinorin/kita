@@ -1,24 +1,21 @@
 import inspect
+from collections.abc import MutableMapping
 from typing import (
     Any,
-    Dict,
     Generic,
-    MutableMapping,
-    Optional,
-    Tuple,
-    Type,
+    TypeIs,
     TypeVar,
-    Union,
     cast,
     overload,
 )
 
 from hikari.undefined import UNDEFINED, UndefinedOr
+from typing_extensions import Self
 
 from kita.typedefs import CallableT
 from kita.utils import ensure_signature
 
-__all__ = ("data", "DataContainerMixin")
+__all__ = ("DataContainerMixin", "data")
 T_co = TypeVar("T_co", covariant=True)
 DataContainerT = TypeVar("DataContainerT", bound="DataContainerMixin")
 
@@ -32,34 +29,38 @@ class _UnsetType:
 
 
 _UNSET = _UnsetType()
-EMPTY_DICT: MutableMapping[Type, Any] = {}
+EMPTY_DICT: MutableMapping[type, Any] = {}
 
 
-def data(type_: Type[T_co]) -> T_co:
+def is_unset(value: object) -> TypeIs[_UnsetType]:
+    return value is _UNSET
+
+
+def data(type_: type[T_co]) -> T_co:
     return cast(T_co, Data(type_))
 
 
 class Data(Generic[T_co]):
     __slots__ = ("type",)
 
-    def __init__(self, type_: Type[T_co]) -> None:
-        self.type: Type[T_co] = type_
+    def __init__(self, type_: type[T_co]) -> None:
+        self.type: type[T_co] = type_
 
 
 class DataContainerMixin:
     __slots__ = ("_data", "_lookup_cache")
 
     def __init__(self) -> None:
-        self._data: Dict[Type, Any] = {type(self): self}
-        self._lookup_cache: Dict[Type, Any] = {}
+        self._data: dict[type, Any] = {type(self): self}
+        self._lookup_cache: dict[type, Any] = {}
 
     def set_data(
-        self: DataContainerT,
+        self,
         data_: Any,
         *,
         override: bool = False,
         suppress: bool = False,
-    ) -> DataContainerT:
+    ) -> Self:
         type_ = type(data_)
         if not override and type_ in self._data:
             if not suppress:
@@ -75,10 +76,10 @@ class DataContainerMixin:
         return self
 
     @overload
-    def get_data(self, type_: Type[T_co]) -> Optional[T_co]: ...
+    def get_data(self, type_: type[T_co]) -> T_co | None: ...
 
     @overload
-    def get_data(self, type_: Type[T_co], default: Any = None) -> Any: ...
+    def get_data(self, type_: type[T_co], default: Any = None) -> Any: ...
 
     def get_data(self, type_: Any, default: Any = None) -> Any:
         """Gets the injected data."""
@@ -91,11 +92,11 @@ class DataContainerMixin:
         self,
         callback: CallableT[T_co],
         *args: Any,
-        extra_env: UndefinedOr[MutableMapping[Type, Any]] = UNDEFINED,
+        extra_env: UndefinedOr[MutableMapping[type, Any]] = UNDEFINED,
         **kwargs: Any,
     ) -> T_co:
         callback = ensure_signature(callback)
-        signatures: Dict[str, Data] = {
+        signatures: dict[str, Data] = {
             k: v.default
             for k, v in callback.__signature__.parameters.items()
             if v.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD
@@ -114,27 +115,27 @@ class DataContainerMixin:
         return res
 
     def _resolve_data(
-        self, type_: Type[T_co], env: MutableMapping[Type, Any]
-    ) -> Union[_UnsetType, Tuple[bool, T_co]]:
+        self, type_: type[T_co], env: MutableMapping[type, Any]
+    ) -> _UnsetType | tuple[bool, T_co]:
         maybe_data = {**self._data, **env}.get(type_, _UNSET)
         if maybe_data is not _UNSET:
             return False, maybe_data
 
         cache = self._lookup_cache.get(type_, _UNSET)
-        if cache is not _UNSET:
+        if not is_unset(cache):
             return False, cache
 
         for subclass in type_.__subclasses__():
             maybe_data = self._resolve_data(subclass, env)
-            if maybe_data is not _UNSET:
-                return not subclass in env, maybe_data[1]
+            if not is_unset(maybe_data):
+                return subclass not in env, maybe_data[1]
 
         return _UNSET
 
-    def _get_data(self, type_: Type[T_co], env: MutableMapping[Type, Any]) -> T_co:
+    def _get_data(self, type_: type[T_co], env: MutableMapping[type, Any]) -> T_co:
         maybe_data = self._resolve_data(type_, env)
 
-        if maybe_data is _UNSET:
+        if is_unset(maybe_data):
             raise LookupError(f"data of type {type_} can't be found.")
 
         assert isinstance(maybe_data, tuple)

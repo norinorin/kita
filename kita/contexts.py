@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Any, Coroutine, Optional, TypeVar
+from collections.abc import Coroutine
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from hikari.events.interaction_events import InteractionCreateEvent
 from hikari.impl.gateway_bot import GatewayBot
 from hikari.interactions.command_interactions import CommandInteraction
 from hikari.messages import Message
+from typing_extensions import Self
 
 from kita.responses import Response, defer, edit, respond
 from kita.typedefs import ICommandCallback
@@ -20,23 +22,23 @@ ContextT = TypeVar("ContextT", bound="Context")
 
 class Context:
     __slots__ = (
-        "event",
-        "n_message",
-        "last_message",
-        "handler",
         "command",
         "deferring",
+        "event",
+        "handler",
+        "last_message",
+        "n_message",
     )
 
     def __init__(self, event: InteractionCreateEvent, handler: GatewayCommandHandler):
         self.event = event
         self.n_message: int = 0
         self.handler = handler
-        self.last_message: Optional[Message] = None
-        self.command: Optional[ICommandCallback] = None
+        self.last_message: Message | None = None
+        self.command: ICommandCallback | None = None
         self.deferring = False
 
-    def set_command(self: ContextT, command: ICommandCallback) -> ContextT:
+    def set_command(self, command: ICommandCallback) -> Self:
         self.command = command
         return self
 
@@ -52,15 +54,15 @@ class Context:
 
     def defer(
         self, *args: Any, **kwargs: Any
-    ) -> Coroutine[Any, Any, Optional[Message]]:
+    ) -> Coroutine[Any, Any, Message | None]:
         return defer(*args, **kwargs).execute(self)
 
     def respond(
         self, *args: Any, **kwargs: Any
-    ) -> Coroutine[Any, Any, Optional[Message]]:
+    ) -> Coroutine[Any, Any, Message | None]:
         return respond(*args, **kwargs).execute(self)
 
-    def edit(self, *args: Any, **kwargs: Any) -> Coroutine[Any, Any, Optional[Message]]:
+    def edit(self, *args: Any, **kwargs: Any) -> Coroutine[Any, Any, Message | None]:
         return edit(*args, **kwargs).execute(self)
 
     async def _resolve_ret_val(self, obj: Any) -> Any:
