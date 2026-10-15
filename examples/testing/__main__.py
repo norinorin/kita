@@ -8,7 +8,7 @@ from hikari.snowflakes import Snowflake
 
 import kita
 from kita.contexts import Context
-from kita.data import data
+from kita.data import Inject
 from kita.options import with_option
 from kita.responses import defer, edit
 
@@ -36,7 +36,7 @@ def sub_group() -> None: ...
 @with_option(OptionType.USER, "user", description="User")
 async def sub_group_command(  # async function
     boolean: bool,  # required
-    ctx: Context = data(Context),  # context could be injected
+    ctx: Inject[Context],  # context could be injected
     user: Snowflake | None = None,  # not required
 ) -> None:
     await ctx.respond(f"{user}, {boolean}")

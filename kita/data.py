@@ -1,11 +1,15 @@
 import inspect
 from collections.abc import MutableMapping
 from typing import (
+    Annotated,
     Any,
     Generic,
     TypeIs,
     TypeVar,
     cast,
+    get_args,
+    get_origin,
+    get_type_hints,
     overload,
 )
 
@@ -15,9 +19,14 @@ from typing_extensions import Self
 from kita.typedefs import CallableT
 from kita.utils import ensure_signature
 
-__all__ = ("DataContainerMixin", "data")
+__all__ = ("DataContainerMixin", "Inject", "data")
+T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 DataContainerT = TypeVar("DataContainerT", bound="DataContainerMixin")
+
+
+class _InjectMarker:
+    __slots__ = ()
 
 
 # this is meant to be a singleton,
@@ -29,6 +38,8 @@ class _UnsetType:
 
 
 _UNSET = _UnsetType()
+_INJECT = _InjectMarker()
+Inject = Annotated[T, _INJECT]
 EMPTY_DICT: MutableMapping[type, Any] = {}
 
 
@@ -96,17 +107,26 @@ class DataContainerMixin:
         **kwargs: Any,
     ) -> T_co:
         callback = ensure_signature(callback)
-        signatures: dict[str, Data] = {
-            k: v.default
-            for k, v in callback.__signature__.parameters.items()
-            if v.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD
-            and isinstance(v.default, Data)
-        }
+        env = extra_env if extra_env is not UNDEFINED else EMPTY_DICT
+        hints = get_type_hints(callback, include_extras=True)
 
-        for k, v in signatures.items():
-            signatures[k] = self._get_data(
-                v.type, extra_env if extra_env is not UNDEFINED else EMPTY_DICT
-            )
+        signatures: dict[str, Any] = {}
+
+        for name, param in callback.__signature__.parameters.items():
+            if param.kind is not inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                continue
+
+            # legacy data(...) syntax
+            if isinstance(param.default, Data):
+                signatures[name] = self._get_data(param.default.type, env)
+                continue
+
+            # new Annotated injection syntax
+            hint = hints.get(name)
+            if get_origin(hint) is Annotated:
+                base_type, *metadata = get_args(hint)
+                if _INJECT in metadata:
+                    signatures[name] = self._get_data(base_type, env)
 
         res = callback(*args, **{**signatures, **kwargs})
         if inspect.isawaitable(res):

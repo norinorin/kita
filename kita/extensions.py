@@ -7,6 +7,7 @@ import sys
 from collections.abc import Callable
 from typing import (
     TYPE_CHECKING,
+    Any,
     TypeVar,
     cast,
     get_type_hints,
@@ -24,7 +25,6 @@ from kita.typedefs import (
 from kita.utils import ensure_signature, is_command_parent, is_listener
 
 if TYPE_CHECKING:
-    from hikari.api.event_manager import CallbackT
     from hikari.events.base_events import EventT
 
     from kita.command_handlers import GatewayCommandHandler
@@ -110,8 +110,8 @@ def finalizer(func: IExtensionCallback) -> ExtensionFinalizer:
 
 def listener(
     event: type[EventT] | None = None,
-) -> Callable[[CallbackT[EventT]], EventCallback[EventT]]:
-    def decorator(func: CallbackT[EventT]) -> EventCallback[EventT]:
+) -> Callable[[Callable[..., Any]], EventCallback[EventT]]:
+    def decorator(func: Callable[..., Any]) -> EventCallback[EventT]:
         cast_func = cast("EventCallback[EventT]", func)
         nonlocal event
         ensure_signature(cast_func)

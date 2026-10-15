@@ -1,10 +1,10 @@
 import logging
 
 from hikari.events.lifetime_events import StartedEvent, StartingEvent
-from hikari.impl.bot import GatewayBot
+from hikari.impl.gateway_bot import GatewayBot
 
 from kita.command_handlers import GatewayCommandHandler
-from kita.data import data
+from kita.data import Inject
 from kita.events import CommandCallEvent, CommandFailureEvent, CommandSuccessEvent
 from kita.extensions import listener
 
@@ -18,7 +18,7 @@ async def on_starting(_: StartingEvent) -> None:
 
 @listener()
 async def on_started(
-    event: StartedEvent, handler: GatewayCommandHandler = data(GatewayCommandHandler)
+    event: StartedEvent, handler: Inject[GatewayCommandHandler]
 ) -> None:
     app = event.app
     assert isinstance(app, GatewayBot)
