@@ -24,12 +24,10 @@ __all__ = (
 )
 
 
-class KitaError(Exception):
-    ...
+class KitaError(Exception): ...
 
 
-class MissingCommandCallbackError(KitaError):
-    ...
+class MissingCommandCallbackError(KitaError): ...
 
 
 class CommandRuntimeError(KitaError):
@@ -42,8 +40,7 @@ class CommandRuntimeError(KitaError):
         self.exception = exception
 
 
-class CommandNameConflictError(KitaError):
-    ...
+class CommandNameConflictError(KitaError): ...
 
 
 class ExtensionError(KitaError):
@@ -73,8 +70,7 @@ class ExtensionFinalizationError(KitaError):
         self.extension = extension
 
 
-class CheckError(KitaError):
-    ...
+class CheckError(KitaError): ...
 
 
 class CheckAnyError(KitaError):
@@ -89,8 +85,7 @@ class CheckAnyError(KitaError):
 class PermissionError(KitaError, ABC):
     @property
     @abstractmethod
-    def perms(self) -> Permissions:
-        ...
+    def perms(self) -> Permissions: ...
 
 
 class MissingPermissionsError(PermissionError):
@@ -115,16 +110,13 @@ class MissingAnyPermissionsError(PermissionError):
         return self._perms
 
 
-class GuildOnlyError(KitaError):
-    ...
+class GuildOnlyError(KitaError): ...
 
 
-class DMOnlyError(KitaError):
-    ...
+class DMOnlyError(KitaError): ...
 
 
-class OwnerOnlyError(KitaError):
-    ...
+class OwnerOnlyError(KitaError): ...
 
 
 class CommandOnCooldownError(KitaError):

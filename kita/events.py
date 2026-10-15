@@ -23,8 +23,7 @@ class KitaEvent(Event, ABC):
 
     @property
     @abstractmethod
-    def context(self) -> Context:
-        ...
+    def context(self) -> Context: ...
 
 
 @attrs(slots=True, weakref_slot=False)

@@ -70,8 +70,7 @@ def exclusive_owner_period_getter(period: float) -> PeriodGetter:
 @overload
 def with_cooldown(
     arg: ICommandCallback, /
-) -> Callable[[CallableProto], ICommandCallback]:
-    ...
+) -> Callable[[CallableProto], ICommandCallback]: ...
 
 
 @overload
@@ -80,8 +79,7 @@ def with_cooldown(
     /,
     limit: Union[LimitGetter, int],
     period: Union[PeriodGetter, float],
-) -> Callable[[CallableProto], ICommandCallback]:
-    ...
+) -> Callable[[CallableProto], ICommandCallback]: ...
 
 
 def with_cooldown(

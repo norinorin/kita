@@ -75,12 +75,10 @@ class DataContainerMixin:
         return self
 
     @overload
-    def get_data(self, type_: Type[T_co]) -> Optional[T_co]:
-        ...
+    def get_data(self, type_: Type[T_co]) -> Optional[T_co]: ...
 
     @overload
-    def get_data(self, type_: Type[T_co], default: Any = None) -> Any:
-        ...
+    def get_data(self, type_: Type[T_co], default: Any = None) -> Any: ...
 
     def get_data(self, type_: Any, default: Any = None) -> Any:
         """Gets the injected data."""

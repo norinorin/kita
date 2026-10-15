@@ -17,8 +17,7 @@ handler = kita.GatewayCommandHandler(bot, guild_ids={1234}).set_data(psutil.Proc
 
 
 @handler.command("sub", "Test command")
-def sub() -> None:
-    ...
+def sub() -> None: ...
 
 
 @sub.command("command", "Test subcommand")
@@ -29,8 +28,7 @@ def sub_command() -> t.Iterator[t.Any]:  # generator
 
 
 @sub.group("group", "Test subcommand group")
-def sub_group() -> None:
-    ...
+def sub_group() -> None: ...
 
 
 @sub_group.command("command", "Test subcommand of subcommand group")

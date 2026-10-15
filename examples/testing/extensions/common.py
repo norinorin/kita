@@ -18,7 +18,7 @@ def ping(
 @command("rss", "Responds with the RSS of the app.")
 def rss(process: Process = data(Process)) -> Response:
     rss = process.memory_full_info().rss
-    return respond(f"{round(rss / 1_024 ** 2, 2)}MiB")
+    return respond(f"{round(rss / 1_024**2, 2)}MiB")
 
 
 @command("raise", "Raise an error")
