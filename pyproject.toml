@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "kita"
 version = "0.1.0"
@@ -10,10 +6,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 
 dependencies = [
-    # fixme: switch back to stable when the fix gets released
-    "hikari @ git+https://github.com/hikari-py/hikari.git@005521f13310f925e2c54c7c5d70a6c40ad71df6",
-    "typing-extensions==4.15.0"
+  # fixme: switch back to stable when the fix gets released
+  "hikari @ git+https://github.com/hikari-py/hikari.git@005521f13310f925e2c54c7c5d70a6c40ad71df6",
+  "typing-extensions==4.15.0"
 ]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["kita*"]
