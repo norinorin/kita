@@ -7,7 +7,7 @@ from hikari.snowflakes import Snowflakeish
 
 from kita.buckets import BucketManager
 from kita.command_handlers import GatewayCommandHandler
-from kita.data import data
+from kita.data import Inject
 from kita.typedefs import (
     BucketHash,
     CallableProto,
@@ -60,9 +60,7 @@ def exclusive_period_getter(period: float, *exclude: BucketHash) -> PeriodGetter
 
 
 def exclusive_owner_period_getter(period: float) -> PeriodGetter:
-    def _period_getter(
-        hash: BucketHash, handler: GatewayCommandHandler = data(GatewayCommandHandler)
-    ) -> float:
+    def _period_getter(hash: BucketHash, handler: Inject[GatewayCommandHandler]) -> float:
         return 0.0 if hash in handler.owner_ids else period
 
     return _period_getter

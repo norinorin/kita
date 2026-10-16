@@ -73,19 +73,17 @@ def _init_callback(func: CommandCallback) -> None:
 
         return decorator
 
-    def group(
-        name: str, description: str
-    ) -> Callable[[CallableProto], IGroupCommandCallback]:
+    def group(name: str, description: str) -> Callable[[CallableProto], IGroupCommandCallback]:
         def decorator(_func: CallableProto) -> IGroupCommandCallback:
             cast_func = cast(IGroupCommandCallback, _func)
             _set_metadata(cast_func, name, description, OptionType.SUB_COMMAND_GROUP)
             __sub_commands__[name] = cast_func
-            cast_func.command = partial(command_, cast_func)  # type: ignore
+            cast_func.command = partial(command_, cast_func)
             cast_func.__sub_commands__ = {}
             return cast_func
 
         return decorator
 
     func.__sub_commands__ = __sub_commands__
-    func.command = partial(command_, func)  # type: ignore
-    func.group = group  # type: ignore
+    func.command = partial(command_, func)
+    func.group = group

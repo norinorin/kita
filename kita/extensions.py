@@ -75,7 +75,7 @@ def reload_extension(name: str) -> tuple[Extension, Extension]:
     try:
         new = load_extension(name)
     except Exception as e:
-        sys.modules[name] = old  # type: ignore
+        sys.modules[name] = old  # pyright: ignore[reportArgumentType]
         raise e from None
     else:
         return old, new

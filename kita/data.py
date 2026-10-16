@@ -1,5 +1,5 @@
 import inspect
-from collections.abc import MutableMapping
+from collections.abc import Awaitable, MutableMapping
 from typing import (
     Annotated,
     Any,
@@ -72,7 +72,7 @@ class DataContainerMixin:
         override: bool = False,
         suppress: bool = False,
     ) -> Self:
-        type_ = type(data_)
+        type_ = cast("type[Any]", type(data_))
         if not override and type_ in self._data:
             if not suppress:
                 raise RuntimeError(f"{type_} already exists.")
@@ -101,7 +101,7 @@ class DataContainerMixin:
 
     async def _invoke_callback(
         self,
-        callback: CallableT[T_co],
+        callback: CallableT[T_co] | CallableT[Awaitable[T_co]],
         *args: Any,
         extra_env: UndefinedOr[MutableMapping[type, Any]] = UNDEFINED,
         **kwargs: Any,
@@ -118,7 +118,7 @@ class DataContainerMixin:
 
             # legacy data(...) syntax
             if isinstance(param.default, Data):
-                signatures[name] = self._get_data(param.default.type, env)
+                signatures[name] = self._get_data(cast("Data[Any]", param.default).type, env)
                 continue
 
             # new Annotated injection syntax

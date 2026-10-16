@@ -73,7 +73,7 @@ def ensure_checks(callback: CallableProto) -> ICommandCallback:
     return callback
 
 
-def ensure_bucket_manager(callback: Callable) -> ICommandCallback:
+def ensure_bucket_manager(callback: CallableProto) -> ICommandCallback:
     callback = cast(ICommandCallback, callback)
     if not hasattr(callback, "__bucket_manager__"):
         callback.__bucket_manager__ = None
@@ -114,7 +114,7 @@ def is_command_parent(obj: Any) -> TypeGuard[CommandCallback]:
     return is_command(obj) and hasattr(obj, "group") and hasattr(obj, "command")
 
 
-def is_listener(obj: Any) -> TypeGuard[EventCallback]:
+def is_listener(obj: Any) -> TypeGuard[EventCallback[Any]]:
     return getattr(obj, "__is_listener__", False)
 
 

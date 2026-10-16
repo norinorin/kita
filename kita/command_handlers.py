@@ -169,7 +169,7 @@ class GatewayCommandHandler(DataContainerMixin):
     def _load_module(self, mod: Extension) -> None:
         name = mod.__name__
         try:
-            mod.__einit__ and mod.__einit__(self)
+            _ = mod.__einit__ and mod.__einit__(self)
         except Exception as e:
             unload_extension(name)
             raise ExtensionInitializationError(e, mod) from e
@@ -180,7 +180,7 @@ class GatewayCommandHandler(DataContainerMixin):
     def _unload_module(self, mod: Extension) -> None:
         name = mod.__name__
         try:
-            mod.__edel__ and mod.__edel__(self)
+            _ = mod.__edel__ and mod.__edel__(self)
         except Exception as e:
             load_extension(name)
             raise ExtensionFinalizationError(e, mod) from e

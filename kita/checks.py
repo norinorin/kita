@@ -7,7 +7,7 @@ from hikari.permissions import Permissions
 
 from kita.command_handlers import GatewayCommandHandler
 from kita.contexts import Context
-from kita.data import data
+from kita.data import Inject
 from kita.errors import (
     CheckAnyError,
     DMOnlyError,
@@ -46,9 +46,9 @@ def with_check_any(
     *predicates: CallableProto,
 ) -> Callable[[CallableProto], ICommandCallback]:
     async def _inner(
-        ctx: Context = data(Context),
+        ctx: Inject[Context],
     ) -> Literal[True]:
-        exceptions = []
+        exceptions: list[Exception] = []
         extra_env: MutableMapping[type[Any], Any] = {
             InteractionCreateEvent: ctx.event,
             CommandInteraction: ctx.interaction,
@@ -58,7 +58,7 @@ def with_check_any(
             try:
                 if await ctx.handler._invoke_callback(predicate, extra_env=extra_env):
                     return True
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:  # noqa: PERF203
                 exceptions.append(exc)
 
         raise CheckAnyError(predicates, exceptions)
@@ -67,7 +67,7 @@ def with_check_any(
 
 
 def guild_only(
-    interaction: CommandInteraction = data(CommandInteraction),
+    interaction: Inject[CommandInteraction],
 ) -> Literal[True]:
     if interaction.guild_id is None:
         raise GuildOnlyError(f"command {interaction.command_name!r} is guild only.")
@@ -75,7 +75,7 @@ def guild_only(
 
 
 def dm_only(
-    interaction: CommandInteraction = data(CommandInteraction),
+    interaction: Inject[CommandInteraction],
 ) -> Literal[True]:
     if interaction.guild_id is not None:
         raise DMOnlyError(f"command {interaction.command_name!r} is dm only.")
@@ -83,8 +83,8 @@ def dm_only(
 
 
 def owner_only(
-    interaction: CommandInteraction = data(CommandInteraction),
-    handler: GatewayCommandHandler = data(GatewayCommandHandler),
+    interaction: Inject[CommandInteraction],
+    handler: Inject[GatewayCommandHandler],
 ) -> Literal[True]:
     if interaction.user.id not in handler.owner_ids:
         raise OwnerOnlyError(f"command {interaction.command_name!r} is owner only.")
@@ -93,7 +93,7 @@ def owner_only(
 
 def has_all_permissions(perms: Permissions) -> CallableProto:
     def inner(
-        interaction: CommandInteraction = data(CommandInteraction),
+        interaction: Inject[CommandInteraction],
     ) -> Literal[True]:
         if not (member := interaction.member) or (member.permissions & perms) != perms:
             raise MissingPermissionsError(perms)
@@ -104,7 +104,7 @@ def has_all_permissions(perms: Permissions) -> CallableProto:
 
 def has_any_permissions(perms: Permissions) -> CallableProto:
     def inner(
-        interaction: CommandInteraction = data(CommandInteraction),
+        interaction: Inject[CommandInteraction],
     ) -> Literal[True]:
         if not ((member := interaction.member) and member.permissions & perms):
             raise MissingAnyPermissionsError(perms)
