@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable, MutableMapping, MutableSequence
+from collections.abc import Awaitable, Callable, MutableMapping, MutableSequence
 from importlib.machinery import ModuleSpec
 from types import CodeType
 from typing import (
@@ -79,9 +79,7 @@ class IGroupCommandCallback(ICommandCallback, Protocol):
     __sub_commands__: MutableMapping[str, SubCommandCallback | SubCommandGroupCallback]
 
     @staticmethod
-    def command(
-        name: str, description: str
-    ) -> Callable[[CallableProto], SubCommandCallback]: ...
+    def command(name: str, description: str) -> Callable[[CallableProto], SubCommandCallback]: ...
 
 
 class CommandCallback(IGroupCommandCallback, Protocol):
@@ -147,24 +145,19 @@ BucketHash = Snowflakeish | tuple[Snowflakeish, ...]
 
 
 class _SyncHashGetter(CallableT[BucketHash], Protocol):
-    @override
     def __call__(self, event: InteractionCreateEvent) -> BucketHash: ...
 
 
 class _SyncHashGetterWithData(CallableT[BucketHash], Protocol):
-    @override
-    def __call__(
-        self, event: InteractionCreateEvent, *args: Any, **kwargs: Any
-    ) -> BucketHash: ...
+    def __call__(self, event: InteractionCreateEvent, *args: Any, **kwargs: Any) -> BucketHash: ...
 
 
-class _AsyncHashGetter(CallableT[BucketHash], Protocol):
-    async def __call__(self, event: InteractionCreateEvent) -> BucketHash:  # type: ignore
-        ...
+class _AsyncHashGetter(CallableT[Awaitable[BucketHash]], Protocol):
+    async def __call__(self, event: InteractionCreateEvent) -> BucketHash: ...
 
 
-class _AsyncHashGetterWithData(CallableT[BucketHash], Protocol):
-    async def __call__(  # type: ignore
+class _AsyncHashGetterWithData(CallableT[Awaitable[BucketHash]], Protocol):
+    async def __call__(
         self, event: InteractionCreateEvent, *args: Any, **kwargs: Any
     ) -> BucketHash: ...
 
@@ -178,14 +171,12 @@ class _SyncLimitGetterWithData(CallableT[int], Protocol):
     def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> int: ...
 
 
-class _AsyncLimitGetter(CallableT[int], Protocol):
-    async def __call__(self, hash: BucketHash) -> int:  # type: ignore
-        ...
+class _AsyncLimitGetter(CallableT[Awaitable[int]], Protocol):
+    async def __call__(self, hash: BucketHash) -> int: ...
 
 
-class _AsyncLimitGetterWithData(CallableT[int], Protocol):
-    async def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> int:  # type: ignore
-        ...
+class _AsyncLimitGetterWithData(CallableT[Awaitable[int]], Protocol):
+    async def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> int: ...
 
 
 class _SyncPeriodGetter(CallableT[float], Protocol):
@@ -197,31 +188,18 @@ class _SyncPeriodGetterWithData(CallableT[float], Protocol):
     def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> float: ...
 
 
-class _AsyncPeriodGetter(CallableT[float], Protocol):
-    async def __call__(self, hash: BucketHash) -> float:  # type: ignore
-        ...
+class _AsyncPeriodGetter(CallableT[Awaitable[float]], Protocol):
+    async def __call__(self, hash: BucketHash) -> float: ...
 
 
-class _AsyncPeriodGetterWithData(CallableT[float], Protocol):
-    async def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> float:  # type: ignore
-        ...
+class _AsyncPeriodGetterWithData(CallableT[Awaitable[float]], Protocol):
+    async def __call__(self, hash: BucketHash, *args: Any, **kwargs: Any) -> float: ...
 
 
-HashGetter = (
-    _SyncHashGetter
-    | _SyncHashGetterWithData
-    | _AsyncHashGetter
-    | _AsyncHashGetterWithData
-)
+HashGetter = _SyncHashGetter | _SyncHashGetterWithData | _AsyncHashGetter | _AsyncHashGetterWithData
 LimitGetter = (
-    _SyncLimitGetter
-    | _SyncLimitGetterWithData
-    | _AsyncLimitGetter
-    | _AsyncLimitGetterWithData
+    _SyncLimitGetter | _SyncLimitGetterWithData | _AsyncLimitGetter | _AsyncLimitGetterWithData
 )
 PeriodGetter = (
-    _SyncPeriodGetter
-    | _SyncPeriodGetterWithData
-    | _AsyncPeriodGetter
-    | _AsyncPeriodGetterWithData
+    _SyncPeriodGetter | _SyncPeriodGetterWithData | _AsyncPeriodGetter | _AsyncPeriodGetterWithData
 )
