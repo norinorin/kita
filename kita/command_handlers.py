@@ -86,9 +86,7 @@ class GatewayCommandHandler(DataContainerMixin):
         self._extensions: dict[str, Extension] = {}
         self.guild_ids = guild_ids or set()
         self.owner_ids = owner_ids or set()
-        self._listeners: MutableMapping[EventCallback, CallbackT] = (
-            WeakValueDictionary()
-        )
+        self._listeners: MutableMapping[EventCallback[Any], CallbackT[Any]] = WeakValueDictionary()
         self.context_type = context_type
         app.subscribe(StartedEvent, self._on_started)
         app.subscribe(InteractionCreateEvent, self._process_command_interaction)
@@ -137,9 +135,7 @@ class GatewayCommandHandler(DataContainerMixin):
 
     def add_command(self, func: CommandCallback, /) -> None:
         if func.__name__ in self._commands:
-            raise CommandNameConflictError(
-                f"command {func.__name__!r} already has a callback."
-            )
+            raise CommandNameConflictError(f"command {func.__name__!r} already has a callback.")
 
         self._commands[func.__name__] = func
 
@@ -242,9 +238,7 @@ class GatewayCommandHandler(DataContainerMixin):
         return cb, {o.name: o.value for o in options or []}
 
     async def _process_command_interaction(self, event: InteractionCreateEvent) -> None:
-        if (
-            interaction := event.interaction
-        ).type is not InteractionType.APPLICATION_COMMAND:
+        if (interaction := event.interaction).type is not InteractionType.APPLICATION_COMMAND:
             return
 
         assert isinstance(interaction, CommandInteraction)
@@ -288,10 +282,7 @@ class GatewayCommandHandler(DataContainerMixin):
         try:
             if not all(
                 await asyncio.gather(
-                    *[
-                        self._invoke_callback(check, extra_env=extra_env)
-                        for check in cb.__checks__
-                    ]
+                    *[self._invoke_callback(check, extra_env=extra_env) for check in cb.__checks__]
                 )
             ):
                 raise CheckError

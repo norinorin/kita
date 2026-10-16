@@ -58,9 +58,7 @@ def _set_metadata(
 
 
 def _init_callback(func: CommandCallback) -> None:
-    __sub_commands__: MutableMapping[
-        str, SubCommandCallback | SubCommandGroupCallback
-    ] = {}
+    __sub_commands__: MutableMapping[str, SubCommandCallback | SubCommandGroupCallback] = {}
 
     def command_(
         self: IGroupCommandCallback, name: str, description: str

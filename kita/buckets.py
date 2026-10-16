@@ -35,9 +35,7 @@ class Bucket:
         self.limit: int
         self.period: float
 
-    def set_constraints(
-        self, limit: int | None = None, period: float | None = None
-    ) -> None:
+    def set_constraints(self, limit: int | None = None, period: float | None = None) -> None:
         if limit is not None:
             self.limit = limit
 
@@ -49,9 +47,7 @@ class Bucket:
 
     def acquire(self) -> None:
         if self.is_exhausted:
-            raise EmptyBucketError(
-                "you run out of tokens.", retry_after=self.next_window
-            )
+            raise EmptyBucketError("you run out of tokens.", retry_after=self.next_window)
 
         self.consume_token()
 
@@ -107,9 +103,7 @@ class BucketManager:
             else self.limit
         )
 
-    async def get_period(
-        self, handler: GatewayCommandHandler, hash_: BucketHash
-    ) -> float:
+    async def get_period(self, handler: GatewayCommandHandler, hash_: BucketHash) -> float:
         return (
             await handler._invoke_callback(self.period, hash_)
             if callable(self.period)
@@ -161,9 +155,7 @@ class BucketManager:
                 self.close()
                 return
 
-            dead_buckets = [
-                bucket for bucket in self.buckets.values() if bucket.is_expired
-            ]
+            dead_buckets = [bucket for bucket in self.buckets.values() if bucket.is_expired]
 
             for bucket in dead_buckets:
                 bucket.invalidate()
