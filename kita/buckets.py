@@ -168,4 +168,4 @@ class BucketManager:
 
     @property
     def is_running(self) -> bool:
-        return self.gc_task is not None
+        return self.gc_task is not None and not self.gc_task.done()
